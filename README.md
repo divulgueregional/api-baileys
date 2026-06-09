@@ -42,8 +42,8 @@ npm list @whiskeysockets/baileys
 
 ### 1. Clonar o repositório
 ```bash
-git clone https://github.com/divulgueregional/api-teste2
-cd api-teste2
+git clone https://github.com/divulgueregional/api-baileys
+cd api-baileys
 ```
 
 ### 2. Configurar variáveis de ambiente
@@ -64,8 +64,10 @@ docker logs -f api-baileys-api-baileys-1
 
 ### 5. Acessar a API
 ```
-http://localhost:8082/v3/docs/
+http://localhost:8000/v3/docs/
 ```
+
+> **⚠️ Importante**: Certifique-se de que a porta 8000 está liberada no firewall do servidor para a API funcionar corretamente.
 
 ### Comandos Docker úteis
 ```bash
@@ -119,7 +121,7 @@ git --version
 ### 3. Clonar o repositório
 ```bash
 git clone https://github.com/divulgueregional/api-baileys
-cd api-teste2
+cd api-baileys
 ```
 
 ### 4. Instalar dependências globais
@@ -159,6 +161,8 @@ pm2 status
 ```
 http://localhost:8000/v3/docs/
 ```
+
+> **⚠️ Importante**: Certifique-se de que a porta 8000 está liberada no firewall do servidor para a API funcionar corretamente.
 
 ---
 
@@ -212,12 +216,12 @@ HTTPS_PORT=443
 
 1. **Criar instância:**
 ```bash
-curl -X POST "http://localhost:8082/rest/instance/init?instance_key=minha_instancia"
+curl -X POST "http://localhost:8000/rest/instance/init?instance_key=minha_instancia"
 ```
 
 2. **Abrir QR Code no navegador:**
 ```
-http://localhost:8082/rest/instance/qrcode/minha_instancia
+http://localhost:8000/rest/instance/qrcode/minha_instancia
 ```
 
 3. **Escanear o QR Code** com o WhatsApp do celular
@@ -226,7 +230,7 @@ http://localhost:8082/rest/instance/qrcode/minha_instancia
 
 Documentação interativa disponível em:
 ```
-http://localhost:8082/v3/docs/
+http://localhost:8000/v3/docs/
 ```
 
 ---
@@ -350,8 +354,8 @@ HTTP_PORT=8001
 1. Verifique se a instância foi criada corretamente
 2. Exclua a instância e crie novamente:
 ```bash
-curl -X DELETE "http://localhost:8082/rest/instance/delete/NOME"
-curl -X POST "http://localhost:8082/rest/instance/init?instance_key=NOME"
+curl -X DELETE "http://localhost:8000/rest/instance/delete/NOME"
+curl -X POST "http://localhost:8000/rest/instance/init?instance_key=NOME"
 ```
 
 ### Erro de permissão no PM2
