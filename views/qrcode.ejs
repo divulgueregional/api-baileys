@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>WhatsApp QrCode</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        min-height: 100vh;
+        margin: 0;
+        background-color: #f0f2f5;
+      }
+      #qrcode_box {
+        max-width: 300px;
+        border: 2px solid #25D366;
+        border-radius: 10px;
+        padding: 10px;
+        background: white;
+      }
+      #loading {
+        color: #666;
+        font-size: 18px;
+      }
+      #scanned {
+        color: #25D366;
+        font-weight: bold;
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+    <script src="https://js.pusher.com/7.0/pusher.min.js"></script>
+    <script>
+      var instanceKey = "<%= instance_key %>";
+      var pusherKey = "<%= process.env.PUSHER_KEY || '' %>";
+      var initialQrcode = "<%= qrcode || '' %>";
+      var pollingInterval = null;
+
+      function updateQrCode(qrcodeData) {
+        if (qrcodeData && qrcodeData.length > 0) {
+          document.getElementById("qrcode_box").setAttribute("src", qrcodeData);
+          document.getElementById("qrcode_box").classList.remove("hidden");
+          document.getElementById("loading").classList.add("hidden");
+        }
+      }
+
+      function checkQrCode() {
+        fetch('/rest/instance/qrcode_base64/' + instanceKey)
+          .then(response => response.json())
+          .then(data => {
+            if (data.qrcode && data.qrcode.length > 0) {
+              updateQrCode(data.qrcode);
+            }
+          })
+          .catch(err => console.log('Polling error:', err));
+      }
+
+      window.onload = function() {
+        // Show initial QR code if available
+        if (initialQrcode && initialQrcode.length > 0) {
+          updateQrCode(initialQrcode);
+        } else {
+          document.getElementById("loading").classList.remove("hidden");
+          document.getElementById("qrcode_box").classList.add("hidden");
+        }
+
+        // Setup Pusher if configured
+        if (pusherKey && pusherKey.length > 0) {
+          Pusher.logToConsole = true;
+          var pusher = new Pusher(pusherKey, { 
+            cluster: "<%= process.env.PUSHER_CLUSTER || 'ap2' %>",
+          });
+          var channel = pusher.subscribe(instanceKey);
+          channel.bind("qrcode_update", function (data) {
+            console.log(data);
+            updateQrCode(data.qrcode);
+          });
+          channel.bind("qrcode_scanned", function (data) {
+            console.log(data);
+            if (pollingInterval) clearInterval(pollingInterval);
+            document.getElementById("scanned").textContent = "Successfully signed in as " + data.number;
+          });
+        } else {
+          // Fallback: polling every 3 seconds if Pusher is not configured
+          console.log("Pusher not configured, using polling fallback");
+          pollingInterval = setInterval(checkQrCode, 3000);
+          // Initial check
+          checkQrCode();
+        }
+      };
+    </script>
+  </head>
+  <body>
+    <h2>WhatsApp QR Code</h2>
+    <p id="loading" class="hidden">Aguardando QR Code... Por favor, aguarde.</p>
+    <img src="" alt="QR Code" id="qrcode_box" class="hidden" />
+    <h3 id="scanned"></h3>
+  </body>
+</html>
