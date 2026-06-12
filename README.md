@@ -333,6 +333,83 @@ api-baileys/
 
 ---
 
+## Atualização da API
+
+### Atualização com Docker
+
+#### 1. Atualizar o código
+```bash
+cd api-baileys
+git pull
+```
+
+#### 2. Reconstruir e subir o container
+```bash
+docker-compose down
+docker-compose build --no-cache
+docker-compose up -d
+```
+
+#### 3. Verificar logs
+```bash
+docker logs -f api-baileys-api-baileys-1
+```
+
+#### 4. Limpar sistema Docker (opcional)
+```bash
+docker system prune -f
+```
+
+---
+
+### Atualização Manual (PM2)
+
+#### 1. Atualizar o código
+```bash
+cd api-baileys
+git pull
+```
+
+#### 2. Recompilar o TypeScript
+```bash
+npm run build
+```
+
+#### 3. Reiniciar o PM2
+```bash
+pm2 restart WhatsAPINodeJs
+```
+
+#### 4. Verificar logs
+```bash
+pm2 log
+```
+
+#### 5. Limpar logs antigos (opcional)
+```bash
+pm2 flush WhatsAPINodeJs
+```
+
+#### 6. Após atualização do Baileys (importante)
+Se após atualizar para Baileys 7.0 o webhook parar de funcionar, execute:
+```bash
+# Parar o serviço
+pm2 stop WhatsAPINodeJs
+
+# Limpar compilação antiga
+rm -rf dist/
+
+# Recompilar
+npm run build
+
+# Iniciar novamente
+pm2 start WhatsAPINodeJs
+```
+
+Isso corrige erros como `TypeError: remoteJidFone.endsWith is not a function`.
+
+---
+
 ## Solução de Problemas
 
 ### Erro: "crypto is not defined"
