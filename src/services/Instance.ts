@@ -90,10 +90,24 @@ export class WhatsAppInstance {
   });
 
   async sendWebhookMessage(data: any) {
-    if (this.sendSecondaryWebhookMessage) {
-      this.secondaryWebhookClient.post("", data).catch((e) => {
-        return;
-      });
+    // Log para debug do webhook
+    console.log(`[WEBHOOK DEBUG] sendSecondaryWebhookMessage: ${this.sendSecondaryWebhookMessage}`);
+    console.log(`[WEBHOOK DEBUG] secondaryWebhookUrl: ${this.secondaryWebhookUrl}`);
+    console.log(`[WEBHOOK DEBUG] messageType: ${data.messageType || 'unknown'}`);
+
+    if (this.sendSecondaryWebhookMessage && this.secondaryWebhookUrl) {
+      console.log(`[WEBHOOK] Enviando para: ${this.secondaryWebhookUrl}`);
+      this.secondaryWebhookClient.post("", data)
+        .then((response) => {
+          console.log(`[WEBHOOK SUCCESS] Status: ${response.status}`);
+        })
+        .catch((e) => {
+          console.log(`[WEBHOOK ERROR] Erro ao enviar: ${e.message}`);
+          if (e.response) {
+            console.log(`[WEBHOOK ERROR] Response status: ${e.response.status}`);
+            console.log(`[WEBHOOK ERROR] Response data: ${JSON.stringify(e.response.data)}`);
+          }
+        });
     }
 
     if (env.DISABLE_WEBHOOK) {
