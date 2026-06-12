@@ -451,7 +451,7 @@ export class WhatsAppInstance {
         let remoteJidFone = this.resolveLid(remoteJid);
 
         // CONSULTA ATIVA: Se ainda for LID, pergunta ao servidor do WhatsApp (Truque da Baileys)
-        if (remoteJidFone && remoteJidFone.endsWith("@lid")) {
+        if (remoteJidFone && typeof remoteJidFone === "string" && remoteJidFone.endsWith("@lid")) {
           try {
             const results = await this.instance.socket?.onWhatsApp(remoteJid);
             if (results && results.length > 0) {
@@ -467,7 +467,7 @@ export class WhatsAppInstance {
         }
 
         // Fallback secundário
-        if (remoteJidFone && remoteJidFone.endsWith("@lid") && m.key.participant) {
+        if (remoteJidFone && typeof remoteJidFone === "string" && remoteJidFone.endsWith("@lid") && m.key.participant) {
           remoteJidFone = this.resolveLid(m.key.participant);
         }
 
@@ -481,7 +481,7 @@ export class WhatsAppInstance {
         };
 
         // LID Resolution Logging
-        if (remoteJid && remoteJid.endsWith("@lid")) {
+        if (remoteJid && typeof remoteJid === "string" && remoteJid.endsWith("@lid")) {
           if (remoteJidFone !== remoteJid) {
             messageToSend.resolvedJid = remoteJidFone;
             console.log(`[LID SUCCESS] ${remoteJid} -> ${remoteJidFone}`);
