@@ -90,22 +90,35 @@ export class WhatsAppInstance {
   });
 
   async sendWebhookMessage(data: any) {
-    // Log para debug do webhook
-    console.log(`[WEBHOOK DEBUG] sendSecondaryWebhookMessage: ${this.sendSecondaryWebhookMessage}`);
-    console.log(`[WEBHOOK DEBUG] secondaryWebhookUrl: ${this.secondaryWebhookUrl}`);
-    console.log(`[WEBHOOK DEBUG] messageType: ${data.messageType || 'unknown'}`);
+    // Log detalhado para identificar disparos indevidos
+    const timestamp = new Date().toISOString();
+    console.log(`[${timestamp}] [WEBHOOK DEBUG] sendSecondaryWebhookMessage: ${this.sendSecondaryWebhookMessage}`);
+    console.log(`[${timestamp}] [WEBHOOK DEBUG] secondaryWebhookUrl: ${this.secondaryWebhookUrl}`);
+    console.log(`[${timestamp}] [WEBHOOK DEBUG] messageType: ${data.messageType || 'unknown'}`);
+    console.log(`[${timestamp}] [WEBHOOK DEBUG] instance_key: ${data.instance_key || 'undefined'}`);
+    
+    // Log específico para diferentes tipos de eventos
+    if (data.messageType === 'connection_update') {
+      console.log(`[${timestamp}] [WEBHOOK WARNING] Evento de conexão disparado! connection_state: ${data.connection_state}`);
+    } else if (data.messageType === 'qrcode_update') {
+      console.log(`[${timestamp}] [WEBHOOK WARNING] Evento de QR Code disparado!`);
+    } else if (data.messageType === 'call') {
+      console.log(`[${timestamp}] [WEBHOOK INFO] Evento de chamada disparado`);
+    } else if (data.messageType && ['conversation', 'extendedTextMessage', 'imageMessage', 'videoMessage', 'audioMessage', 'documentMessage'].includes(data.messageType)) {
+      console.log(`[${timestamp}] [WEBHOOK OK] Mensagem real recebida: ${data.messageType}`);
+    }
 
     if (this.sendSecondaryWebhookMessage && this.secondaryWebhookUrl) {
-      console.log(`[WEBHOOK] Enviando para: ${this.secondaryWebhookUrl}`);
+      console.log(`[${timestamp}] [WEBHOOK] Enviando para: ${this.secondaryWebhookUrl}`);
       this.secondaryWebhookClient.post("", data)
         .then((response) => {
-          console.log(`[WEBHOOK SUCCESS] Status: ${response.status}`);
+          console.log(`[${timestamp}] [WEBHOOK SUCCESS] Status: ${response.status}`);
         })
         .catch((e) => {
-          console.log(`[WEBHOOK ERROR] Erro ao enviar: ${e.message}`);
+          console.log(`[${timestamp}] [WEBHOOK ERROR] Erro ao enviar: ${e.message}`);
           if (e.response) {
-            console.log(`[WEBHOOK ERROR] Response status: ${e.response.status}`);
-            console.log(`[WEBHOOK ERROR] Response data: ${JSON.stringify(e.response.data)}`);
+            console.log(`[${timestamp}] [WEBHOOK ERROR] Response status: ${e.response.status}`);
+            console.log(`[${timestamp}] [WEBHOOK ERROR] Response data: ${JSON.stringify(e.response.data)}`);
           }
         });
     }
