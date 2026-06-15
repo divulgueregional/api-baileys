@@ -97,15 +97,36 @@ export class WhatsAppInstance {
     console.log(`[${timestamp}] [WEBHOOK DEBUG] messageType: ${data.messageType || 'unknown'}`);
     console.log(`[${timestamp}] [WEBHOOK DEBUG] instance_key: ${data.instance_key || 'undefined'}`);
     
+    // Lista de tipos de mensagem que devem ser enviados ao webhook
+    const validMessageTypes = [
+      'conversation', 
+      'extendedTextMessage', 
+      'imageMessage', 
+      'videoMessage', 
+      'audioMessage', 
+      'documentMessage',
+      'stickerMessage',
+      'locationMessage',
+      'contactMessage',
+      'buttonsResponseMessage',
+      'listResponseMessage'
+    ];
+    
     // Log específico para diferentes tipos de eventos
     if (data.messageType === 'connection_update') {
-      console.log(`[${timestamp}] [WEBHOOK WARNING] Evento de conexão disparado! connection_state: ${data.connection_state}`);
+      console.log(`[${timestamp}] [WEBHOOK WARNING] Evento de conexão IGNORADO! connection_state: ${data.connection_state}`);
+      return; // Não envia eventos de conexão
     } else if (data.messageType === 'qrcode_update') {
-      console.log(`[${timestamp}] [WEBHOOK WARNING] Evento de QR Code disparado!`);
+      console.log(`[${timestamp}] [WEBHOOK WARNING] Evento de QR Code IGNORADO!`);
+      return; // Não envia eventos de QR Code
     } else if (data.messageType === 'call') {
-      console.log(`[${timestamp}] [WEBHOOK INFO] Evento de chamada disparado`);
-    } else if (data.messageType && ['conversation', 'extendedTextMessage', 'imageMessage', 'videoMessage', 'audioMessage', 'documentMessage'].includes(data.messageType)) {
+      console.log(`[${timestamp}] [WEBHOOK INFO] Evento de chamada IGNORADO!`);
+      return; // Não envia eventos de chamada
+    } else if (data.messageType && validMessageTypes.includes(data.messageType)) {
       console.log(`[${timestamp}] [WEBHOOK OK] Mensagem real recebida: ${data.messageType}`);
+    } else {
+      console.log(`[${timestamp}] [WEBHOOK WARNING] Tipo de mensagem desconhecido IGNORADO: ${data.messageType}`);
+      return; // Ignora tipos desconhecidos
     }
 
     if (this.sendSecondaryWebhookMessage && this.secondaryWebhookUrl) {
