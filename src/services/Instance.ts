@@ -90,13 +90,6 @@ export class WhatsAppInstance {
   });
 
   async sendWebhookMessage(data: any) {
-    // Log detalhado para identificar disparos indevidos
-    const timestamp = new Date().toISOString();
-    console.log(`[${timestamp}] [WEBHOOK DEBUG] sendSecondaryWebhookMessage: ${this.sendSecondaryWebhookMessage}`);
-    console.log(`[${timestamp}] [WEBHOOK DEBUG] secondaryWebhookUrl: ${this.secondaryWebhookUrl}`);
-    console.log(`[${timestamp}] [WEBHOOK DEBUG] messageType: ${data.messageType || 'unknown'}`);
-    console.log(`[${timestamp}] [WEBHOOK DEBUG] instance_key: ${data.instance_key || 'undefined'}`);
-    
     // Lista de tipos de mensagem que devem ser enviados ao webhook
     const validMessageTypes = [
       'conversation', 
@@ -109,41 +102,37 @@ export class WhatsAppInstance {
       'locationMessage',
       'contactMessage',
       'buttonsResponseMessage',
-      'listResponseMessage'
+      'listResponseMessage',
+      'reactionMessage'
     ];
     
-    // Log específico para diferentes tipos de eventos
+    // FILTRO PRINCIPAL: Bloqueia eventos que não são mensagens reais
+    // Isso impede disparos indevidos de webhook (especialmente de madrugada)
     if (data.messageType === 'connection_update') {
-      console.log(`[${timestamp}] [WEBHOOK WARNING] Evento de conexão IGNORADO! connection_state: ${data.connection_state}`);
-      return; // Não envia eventos de conexão
-    } else if (data.messageType === 'qrcode_update') {
-      console.log(`[${timestamp}] [WEBHOOK WARNING] Evento de QR Code IGNORADO!`);
-      return; // Não envia eventos de QR Code
-    } else if (data.messageType === 'call') {
-      console.log(`[${timestamp}] [WEBHOOK INFO] Evento de chamada IGNORADO!`);
-      return; // Não envia eventos de chamada
-    } else if (data.messageType && validMessageTypes.includes(data.messageType)) {
-      console.log(`[${timestamp}] [WEBHOOK OK] Mensagem real recebida: ${data.messageType}`);
-    } else {
-      console.log(`[${timestamp}] [WEBHOOK WARNING] Tipo de mensagem desconhecido IGNORADO: ${data.messageType}`);
-      return; // Ignora tipos desconhecidos
+      // console.log(`[WEBHOOK BLOCKED] Evento de conexão ignorado: ${data.connection_state}`);
+      return;
+    }
+    if (data.messageType === 'qrcode_update') {
+      // console.log(`[WEBHOOK BLOCKED] Evento de QR Code ignorado`);
+      return;
+    }
+    if (data.type === 'call' || data.messageType === 'call') {
+      // console.log(`[WEBHOOK BLOCKED] Evento de chamada ignorado`);
+      return;
+    }
+    if (data.messageType && !validMessageTypes.includes(data.messageType)) {
+      // console.log(`[WEBHOOK BLOCKED] Tipo desconhecido ignorado: ${data.messageType}`);
+      return;
     }
 
+    // Envia para o webhook secundário (configurado por instância)
     if (this.sendSecondaryWebhookMessage && this.secondaryWebhookUrl) {
-      console.log(`[${timestamp}] [WEBHOOK] Enviando para: ${this.secondaryWebhookUrl}`);
-      this.secondaryWebhookClient.post("", data)
-        .then((response) => {
-          console.log(`[${timestamp}] [WEBHOOK SUCCESS] Status: ${response.status}`);
-        })
-        .catch((e) => {
-          console.log(`[${timestamp}] [WEBHOOK ERROR] Erro ao enviar: ${e.message}`);
-          if (e.response) {
-            console.log(`[${timestamp}] [WEBHOOK ERROR] Response status: ${e.response.status}`);
-            console.log(`[${timestamp}] [WEBHOOK ERROR] Response data: ${JSON.stringify(e.response.data)}`);
-          }
-        });
+      this.secondaryWebhookClient.post("", data).catch((e) => {
+        console.log(`[WEBHOOK ERROR] ${e.message}`);
+      });
     }
 
+    // Envia para o webhook principal (configurado no .env)
     if (env.DISABLE_WEBHOOK) {
       return;
     }
