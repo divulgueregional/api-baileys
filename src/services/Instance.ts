@@ -612,13 +612,18 @@ export class WhatsAppInstance {
       return { exists: true, jid };
     }
 
-    const [result] = (await this.instance.socket?.onWhatsApp(
-      this.createId(jid)
-    )) as {
-      exists: boolean;
-      jid: string;
-    }[];
-    return result;
+    try {
+      const results = await this.instance.socket?.onWhatsApp(this.createId(jid));
+      if (results && Array.isArray(results) && results.length > 0) {
+        return results[0];
+      }
+      // Se não conseguiu verificar, assume que existe para não bloquear envio
+      return { exists: true, jid: this.createId(jid) };
+    } catch (error) {
+      console.log(`[isRegistered] Erro ao verificar ${jid}:`, error);
+      // Em caso de erro, assume que existe para não bloquear envio
+      return { exists: true, jid: this.createId(jid) };
+    }
   }
 
   // Method to send a message to a user
