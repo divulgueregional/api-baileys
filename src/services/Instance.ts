@@ -265,6 +265,9 @@ export class WhatsAppInstance {
         level: "silent",
       }),
       getMessage: this.msgHandler.messageRetryHandler,
+      // Versão fixa do WhatsApp Web - necessário após atualização de 29/07/2026
+      // Não usar fetchLatestBaileysVersion() pois pode retornar versão incompatível
+      version: [2, 3000, 1044006379],
     };
 
     this.instance.socket = makeWASocket(this.socketConfig);
